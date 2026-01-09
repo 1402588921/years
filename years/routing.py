@@ -105,7 +105,7 @@ class Mount(BaseRoute):
 
         res = re.match(self.regex, path)
         if res:
-            scope["path"] = path[res.span()[-1] :]
+            scope["path"] = path[res.span()[-1] :]  # noqa
             return Mathched.FULL, scope
         else:
             return Mathched.PARTICAL, scope
