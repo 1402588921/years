@@ -6,6 +6,7 @@ from years.responses import (
     StreamingResponse,
     FileResponse,
 )
+from years.requests import Request
 
 from years import Years
 
@@ -62,6 +63,18 @@ def request(request):
     type = request["type"]
     method = request.method
     return JSONResponse(dict(type=type, method=method))
+
+
+@sub.get("/request2")
+def request2(request: Request):
+    """验证 Headers 是否正常"""
+    return JSONResponse(dict(headers=request.headers.dump()))
+
+
+@sub.get("/request3")
+def request3(request: Request):
+    """验证查询参数是否正常解析"""
+    return PlainTextResponse(str(request.query_params))
 
 
 app = Years()
