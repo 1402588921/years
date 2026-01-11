@@ -38,7 +38,7 @@ class JSONResponse(Response):
     media_type = "application/json"
 
     async def __call__(self, scope, send):
-        self.content = json.dumps(dict(self.content))
+        self.content = json.dumps(dict(self.content), ensure_ascii=False)
         return await super().__call__(scope, send)
 
 

@@ -76,6 +76,13 @@ def request3(request: Request):
     return JSONResponse(request.query_params)
 
 
+@sub.get("/request4/{name}/{id}")
+async def request4(request: Request):
+    host, port = request.url.host, request.url.port
+    path = request.url.path
+    return JSONResponse(dict(host=host, port=port, path=path))
+
+
 app = Years()
 
 app.mount("/sub/{name}", sub)

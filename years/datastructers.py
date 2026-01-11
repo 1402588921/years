@@ -1,5 +1,56 @@
 from collections.abc import Mapping
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, unquote, urlparse
+
+
+class URL:
+    def __init__(self, scope=None, url=None):
+        assert not (scope and url), "构建不可以同时提供 url 和 scope 参数"
+        if scope is not None:
+            host, port = scope["server"]
+            scheme = scope["scheme"]
+            path = unquote(scope["raw_path"])
+            url = f"{scheme}://{host}:{port}{path}"
+
+        self._url = url
+
+    @property
+    def components(self):
+        if not hasattr(self, "_components"):
+            components = urlparse(self._url)
+            self._components = components
+        return self._components
+
+    @property
+    def sheme(self):
+        return self.components.scheme
+
+    @property
+    def host(self):
+        return self.components.hostname
+
+    @property
+    def port(self):
+        return self.components.port
+
+    @property
+    def username(self):
+        return self.components.username
+
+    @property
+    def password(self):
+        return self.components.password
+
+    @property
+    def path(self):
+        return self.components.path
+
+    @property
+    def fragment(self):
+        return self.components.fragment
+
+    @property
+    def netloc(self):
+        return self.components.netloc
 
 
 class Hearders(Mapping):
