@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from years.datastructers import Hearders, QueryParams
+from years.datastructers import Hearders, QueryParams, URL
 
 
 class Request(Mapping):
@@ -19,6 +19,14 @@ class Request(Mapping):
     @property
     def method(self):
         return self["method"]
+
+    @property
+    def url(self) -> URL:
+        if not hasattr(self, "_url"):
+            url = URL(self._scope)
+            self._url = url
+
+        return self._url
 
     @property
     def query_params(self):
