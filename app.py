@@ -1,4 +1,5 @@
 import asyncio
+from contextlib import asynccontextmanager
 from years.responses import (
     HTMLResponse,
     PlainTextResponse,
@@ -92,11 +93,19 @@ async def debug(request: Request):
     result = 1 / 0
     return PlainTextResponse(result)
 
+
 app = Years()
 
 app.mount("/sub/{name}", sub)
-
 app.debug = True
+
+
+@app.lifespan()
+@asynccontextmanager
+async def lifespan_event():
+    print("收到 startup 事件，数据库启动...")
+    yield
+    print("收到 shutdown 事件，清理工作开始...")
 
 
 if __name__ == "__main__":
