@@ -1,3 +1,4 @@
+from contextlib import AsyncExitStack
 from years.routing import Router, Route, Mount
 from years.debug import DebugMiddleware
 
@@ -5,6 +6,7 @@ from years.debug import DebugMiddleware
 class Years:
     def __init__(self, router: Router = None):
         self._debug = False
+        self._lifespan = None
         if router:
             self.router = router
         else:
@@ -47,5 +49,27 @@ class Years:
         mount = Mount(path, app=app)
         self.router.add_mount(mount)
 
+    def lifespan(self):
+        def decorate(func):
+            self._lifespan = func
+
+        return decorate
+
+    async def run_lifespan(self, scope, receive, send):
+        stack = AsyncExitStack()
+        while True:
+            message = await receive()
+            if message["type"] == "lifespan.startup":
+                await stack.enter_async_context(self._lifespan())
+                await send({"type": "lifespan.startup.complete"})
+
+            elif message["type"] == "lifespan.shutdown":
+                await stack.aclose()
+                await send({"type": "lifespan.shutdown.complete"})
+                return
+
     async def __call__(self, scope, receive, send):
-        await self.router(scope, receive, send)
+        if scope["type"] == "lifespan":
+            await self.run_lifespan(scope, receive, send)
+        else:
+            await self.router(scope, receive, send)
