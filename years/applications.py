@@ -1,6 +1,7 @@
 from contextlib import AsyncExitStack
 from years.routing import Router, Route, Mount
 from years.debug import DebugMiddleware
+from years.endpoint import Endpoint
 
 
 class Years:
@@ -27,6 +28,14 @@ class Years:
 
         def decorate(endpoint):
             route = Route(path, endpoint, methods=methods)
+            self.router.add_route(route)
+
+        return decorate
+
+    def classview(self, path):
+        def decorate(endpoint: Endpoint):
+            endpoint = endpoint()
+            route = Route(path, endpoint, methods=endpoint.get_methods())
             self.router.add_route(route)
 
         return decorate
