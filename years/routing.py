@@ -2,6 +2,7 @@ import re
 import enum
 import typing
 import asyncio
+import inspect
 
 from years.responses import HTMLResponse
 from years.requests import Request
@@ -9,7 +10,10 @@ from years.requests import Request
 
 def request_response(endpoint: typing.Callable):
     async def wrapper(scope, receive, send):
-        is_async = asyncio.iscoroutinefunction(endpoint)
+        is_async = inspect.iscoroutinefunction(endpoint) or (
+            not inspect.isclass(endpoint)
+            and inspect.iscoroutinefunction(getattr(endpoint, "__call__", None))
+        )
         request = Request(scope, receive)
 
         if is_async:

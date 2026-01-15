@@ -8,7 +8,7 @@ from years.responses import (
     FileResponse,
 )
 from years.requests import Request
-
+from years.endpoint import Endpoint
 from years import Years
 
 sub = Years()
@@ -94,10 +94,19 @@ async def debug(request: Request):
     return PlainTextResponse(result)
 
 
+@sub.classview("/class_view")
+class ClassView(Endpoint):
+    async def get(self, request: Request):
+        return PlainTextResponse("Hello, Get!")
+
+    async def post(self, request: Request):
+        return PlainTextResponse("Hello, Post!")
+
+
 app = Years()
 
 app.mount("/sub/{name}", sub)
-app.debug = True
+app.debug = False
 
 
 @app.lifespan()
