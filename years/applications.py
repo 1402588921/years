@@ -5,9 +5,9 @@ from years.endpoint import Endpoint
 
 
 class Years:
-    def __init__(self, router: Router = None):
+    def __init__(self, router: Router = None, lifespan=None):
         self._debug = False
-        self._lifespan = None
+        self.lifespan = lifespan
         if router:
             self.router = router
         else:
@@ -58,18 +58,15 @@ class Years:
         mount = Mount(path, app=app)
         self.router.add_mount(mount)
 
-    def lifespan(self):
-        def decorate(func):
-            self._lifespan = func
-
-        return decorate
-
     async def run_lifespan(self, scope, receive, send):
         stack = AsyncExitStack()
+        if self.lifespan is None:
+            return
+
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
-                await stack.enter_async_context(self._lifespan())
+                await stack.enter_async_context(self.lifespan())
                 await send({"type": "lifespan.startup.complete"})
 
             elif message["type"] == "lifespan.shutdown":

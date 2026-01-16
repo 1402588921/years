@@ -9,7 +9,16 @@ from years.responses import (
 )
 from years.requests import Request
 from years.endpoint import Endpoint
+from years.background import BackgroundTask
 from years import Years
+
+
+@asynccontextmanager
+async def lifespan():
+    print("收到 startup 事件，数据库启动...")
+    yield
+    print("收到 shutdown 事件，清理工作开始...")
+
 
 sub = Years()
 
@@ -103,18 +112,20 @@ class ClassView(Endpoint):
         return PlainTextResponse("Hello, Post!")
 
 
-app = Years()
+def send_email(email: str):
+    print(f"[Background Task: {email} 邮件发送中]")
+
+
+@sub.get("/background_task")
+async def background_task(request: Request):
+    background_task = BackgroundTask(send_email, "123@gmail.com")
+    return PlainTextResponse("Response complete!", background_task=background_task)
+
+
+app = Years(lifespan=lifespan)
 
 app.mount("/sub/{name}", sub)
 app.debug = False
-
-
-@app.lifespan()
-@asynccontextmanager
-async def lifespan_event():
-    print("收到 startup 事件，数据库启动...")
-    yield
-    print("收到 shutdown 事件，清理工作开始...")
 
 
 if __name__ == "__main__":
