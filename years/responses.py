@@ -6,11 +6,18 @@ import aiofiles
 class Response:
     media_type = None
 
-    def __init__(self, content: str, status_code: int = 200, media_type: str = None):
+    def __init__(
+        self,
+        content: str,
+        status_code: int = 200,
+        media_type: str = None,
+        background_task=None,
+    ):
         self.status_code = status_code
         self.content = content
         if media_type:
             self.media_type = media_type
+        self.background_task = background_task
 
     async def __call__(self, scope, send):
         await send(
@@ -24,6 +31,8 @@ class Response:
         )
 
         await send({"type": "http.response.body", "body": self.content.encode("utf-8")})
+        if self.background_task:
+            await self.background_task()
 
 
 class HTMLResponse(Response):
@@ -43,11 +52,14 @@ class JSONResponse(Response):
 
 
 class StreamingResponse(Response):
-    def __init__(self, streamio, status_code: int = 200, media_type=None):
+    def __init__(
+        self, streamio, status_code: int = 200, media_type=None, background_task=None
+    ):
         self.streamio = streamio
         self.status_code = status_code
         if media_type:
             self.media_type = media_type
+        self.background_task = background_task
 
     async def __call__(self, scope, send):
         await send(
@@ -73,19 +85,26 @@ class StreamingResponse(Response):
             )
 
         await send({"type": "http.response.body"})
+        if self.background_task:
+            await self.background_task()
 
 
 class FileResponse(Response):
     def __init__(
-        self, path: str, status_code: int = 200, media_type=None, filename: str = None
+        self,
+        path: str,
+        status_code: int = 200,
+        media_type=None,
+        filename: str = None,
+        background_task=None,
     ):
         self.status_code = status_code
         self.path = path
         if media_type:
             self.media_type = media_type
-
         if filename:
             self.filename = filename
+        self.background_task = background_task
 
     async def __call__(self, scope, send):
         async with aiofiles.open(self.path, mode="rb") as fp:
@@ -111,3 +130,5 @@ class FileResponse(Response):
             await send(start)
 
         await send({"type": "http.response.body", "body": content})
+        if self.background_task:
+            await self.background_task()

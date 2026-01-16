@@ -12,8 +12,6 @@ class DebugMiddleware:
         try:
             await self.endpoint(scope, receive, send)
         except Exception:
-            # 当出现异常的时候，根本没法到原来 return 的地方，原来的路直接断掉了
-            # 所以只能在这里将响应 send 出去了
             err_stack = traceback.format_exc()
             response = PlainTextResponse(err_stack)
             await response(scope, send)
