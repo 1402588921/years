@@ -9,9 +9,19 @@ class URL:
             host, port = scope["server"]
             scheme = scope["scheme"]
             path = unquote(scope["raw_path"])
-            url = f"{scheme}://{host}:{port}{path}"
+            query_string = scope["query_string"].decode("utf-8")
+            if port is not None:
+                url = f"{scheme}://{host}:{port}{path}"
+            else:
+                url = f"{scheme}://{host}{path}"
+
+            if query_string:
+                url += "?" + query_string
 
         self._url = url
+
+    def __str__(self):
+        return self._url
 
     @property
     def components(self):

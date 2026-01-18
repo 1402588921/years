@@ -19,7 +19,7 @@ class Response:
             self.media_type = media_type
         self.background_task = background_task
 
-    async def __call__(self, scope, send):
+    async def __call__(self, scope, receive, send):
         await send(
             {
                 "type": "http.response.start",
@@ -46,9 +46,9 @@ class PlainTextResponse(Response):
 class JSONResponse(Response):
     media_type = "application/json"
 
-    async def __call__(self, scope, send):
+    async def __call__(self, scope, receive, send):
         self.content = json.dumps(dict(self.content), ensure_ascii=False)
-        return await super().__call__(scope, send)
+        return await super().__call__(scope, receive, send)
 
 
 class StreamingResponse(Response):
@@ -61,7 +61,7 @@ class StreamingResponse(Response):
             self.media_type = media_type
         self.background_task = background_task
 
-    async def __call__(self, scope, send):
+    async def __call__(self, scope, receive, send):
         await send(
             {
                 "type": "http.response.start",
@@ -106,7 +106,7 @@ class FileResponse(Response):
             self.filename = filename
         self.background_task = background_task
 
-    async def __call__(self, scope, send):
+    async def __call__(self, scope, receive, send):
         async with aiofiles.open(self.path, mode="rb") as fp:
             content = await fp.read()
 
