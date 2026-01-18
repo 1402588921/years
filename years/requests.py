@@ -54,3 +54,11 @@ class Request(Mapping):
             yield current["body"]
             if not current["more_body"]:
                 break
+
+    async def body(self) -> bytes:
+        if not hasattr(self, "_body"):
+            self._body = b""
+            async for chunk in self.stream():
+                self._body += chunk
+
+        return self._body
